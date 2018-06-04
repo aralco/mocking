@@ -2,6 +2,7 @@ package bo.edu.umss.programming.mocking;
 
 import bo.edu.umss.programming.mocking.domain.Personnel;
 import bo.edu.umss.programming.mocking.exception.NotValidPersonnelException;
+import bo.edu.umss.programming.mocking.repository.PersonnelRepository;
 import bo.edu.umss.programming.mocking.service.PersonnelService;
 import org.junit.Before;
 import org.junit.Test;
@@ -17,8 +18,10 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 public class PersonnelServiceTestUsingMockito {
-    private PersonnelService mockPersonnelService;
+    private PersonnelService personnelService;
     //Mock
+    private PersonnelRepository mockPersonnelRepository;
+
     private List<Personnel> registeredPersonnels = new ArrayList<>();
     private Personnel personnelA;
     private Personnel personnelB;
@@ -37,7 +40,9 @@ public class PersonnelServiceTestUsingMockito {
         Calendar calendar = Calendar.getInstance();
 
         //Mock Start
-        mockPersonnelService = mock(PersonnelService.class);
+        mockPersonnelRepository = mock(PersonnelRepository.class);
+        personnelService = new PersonnelService(mockPersonnelRepository);
+
 
         personnelA = new Personnel();
         personnelA.setFullName("Pepito Juarez");
@@ -146,136 +151,133 @@ public class PersonnelServiceTestUsingMockito {
     //Funcionalidad 1
     @Test
     public void testRegisteredPersonnelIsReturned() throws Exception {
-        when(mockPersonnelService.registerPersonnel(personnel)).thenReturn(personnelA);
-        assertNotNull(mockPersonnelService.registerPersonnel(personnel));
+        when(mockPersonnelRepository.save(personnel)).thenReturn(personnelA);
+        assertNotNull(personnelService.registerPersonnel(personnel));
     }
 
     @Test
     public void testRegisteredPersonnelHasId() throws Exception {
-        when(mockPersonnelService.registerPersonnel(personnel)).thenReturn(personnelA);
-        assertNotNull((mockPersonnelService.registerPersonnel(personnel)).getId());
+        when(mockPersonnelRepository.save(personnel)).thenReturn(personnelA);
+        assertNotNull((personnelService.registerPersonnel(personnel)).getId());
     }
 
     @Test
     public void testRegisteredPersonnelHasRegistrationDate() throws Exception {
-        when(mockPersonnelService.registerPersonnel(personnel)).thenReturn(personnelA);
-        assertNotNull((mockPersonnelService.registerPersonnel(personnel)).getRegistrationDate());
+        when(mockPersonnelRepository.save(personnel)).thenReturn(personnelA);
+        assertNotNull((personnelService.registerPersonnel(personnel)).getRegistrationDate());
     }
 
     @Test
     public void testRegisteredPersonnelHasUniqueId() throws Exception {
-        when(mockPersonnelService.registerPersonnel(personnel)).thenReturn(personnelA);
-        when(mockPersonnelService.registerPersonnel(personnel2)).thenReturn(personnelB);
+        when(mockPersonnelRepository.save(personnel)).thenReturn(personnelA);
+        when(mockPersonnelRepository.save(personnel2)).thenReturn(personnelB);
         assertNotEquals(
-                mockPersonnelService.registerPersonnel(personnel).getId(),
-                mockPersonnelService.registerPersonnel(personnel2).getId());
+                personnelService.registerPersonnel(personnel).getId(),
+                personnelService.registerPersonnel(personnel2).getId());
     }
 
     @Test
     public void testPersonnelToBeRegisteredDoesNotHaveNullValues() throws Exception {
-        assertFalse(mockPersonnelService.personnelHasNullValues(personnel));
+        assertFalse(personnelService.personnelHasNullValues(personnel));
     }
 
     @Test
     public void testPersonnelToBeRegisteredHasNullValues() throws Exception {
-        when(mockPersonnelService.personnelHasNullValues(personnelWithNullValues)).thenCallRealMethod();
-        assertTrue(mockPersonnelService.personnelHasNullValues(personnelWithNullValues));
+        assertTrue(personnelService.personnelHasNullValues(personnelWithNullValues));
     }
 
     @Test
     public void testPersonnelToBeRegisteredHasValidData() throws Exception {
         assertFalse(
                 "Personnel has valid data",
-                mockPersonnelService.personnelHasInvalidData(personnel));
+                personnelService.personnelHasInvalidData(personnel));
     }
 
     @Test
     public void testPersonnelToBeRegisteredHasInvalidData() throws Exception {
-        when(mockPersonnelService.personnelHasInvalidData(personnelWithInvalidData)).thenCallRealMethod();
         assertTrue(
                 "Personnel has invalid data",
-                mockPersonnelService.personnelHasInvalidData(personnelWithInvalidData));
+                personnelService.personnelHasInvalidData(personnelWithInvalidData));
     }
 
     @Test(expected = NotValidPersonnelException.class)
     public void testExceptionThrownWhenPersonnelToBeRegisteredIsNotValid() throws Exception {
-        when(mockPersonnelService.registerPersonnel(personnelWithNullValues)).thenThrow(NotValidPersonnelException.class);
-        mockPersonnelService.registerPersonnel(personnelWithNullValues);
+        personnelService.registerPersonnel(personnelWithNullValues);
     }
 
     @Test(expected = NotValidPersonnelException.class)
     public void testExceptionThrownWhenPersonnelToBeRegisteredIsNotValid2() throws Exception {
-        when(mockPersonnelService.registerPersonnel(personnelWithInvalidData)).thenThrow(NotValidPersonnelException.class);
-        mockPersonnelService.registerPersonnel(personnelWithInvalidData);
+        personnelService.registerPersonnel(personnelWithInvalidData);
     }
 
     //Funcionalidad 2
     @Test
     public void testRegisteredPersonnelListExists() throws Exception {
-        assertNotNull(mockPersonnelService.retrieveRegisteredPersonnelList());
+        assertNotNull(personnelService.retrieveRegisteredPersonnelList());
     }
 
     @Test
     public void testRegisteredPersonnelListIsNotEmpty() throws Exception {
-//        mockPersonnelService.registerPersonnel(personnel);
-        when(mockPersonnelService.retrieveRegisteredPersonnelList()).thenReturn(registeredPersonnels);
-        assertFalse(mockPersonnelService.retrieveRegisteredPersonnelList().isEmpty());
+        when(mockPersonnelRepository.findAll()).thenReturn(registeredPersonnels);
+        assertFalse(personnelService.retrieveRegisteredPersonnelList().isEmpty());
     }
 
     @Test
     public void testRegisteredPersonnelIsOnRegisteredPersonnelList() throws Exception {
-//        mockPersonnelService.registerPersonnel(personnel);
-//        mockPersonnelService.registerPersonnel(personnel2);
-        when(mockPersonnelService.retrieveRegisteredPersonnelList()).thenReturn(registeredPersonnels);
-        assertThat(mockPersonnelService.retrieveRegisteredPersonnelList(),
+        when(mockPersonnelRepository.save(personnel)).thenReturn(personnelA);
+        when(mockPersonnelRepository.save(personnel2)).thenReturn(personnelB);
+        personnelA = personnelService.registerPersonnel(personnel);
+        personnelB = personnelService.registerPersonnel(personnel2);
+        when(mockPersonnelRepository.findAll()).thenReturn(registeredPersonnels);
+        assertThat(personnelService.retrieveRegisteredPersonnelList(),
                 hasItems(personnelA, personnelB));
     }
 /*
     //Funcionalidad 3
     @Test
     public void testSortByFullNameAsc() throws Exception {
-        mockPersonnelService.registerPersonnel(personnel);
-        mockPersonnelService.registerPersonnel(personnel2);
-        mockPersonnelService.registerPersonnel(personnel3);
-        mockPersonnelService.registerPersonnel(personnel4);
+        personnelService.registerPersonnel(personnel);
+        personnelService.registerPersonnel(personnel2);
+        personnelService.registerPersonnel(personnel3);
+        personnelService.registerPersonnel(personnel4);
         assertThat(
-                mockPersonnelService.retrieveRegisteredPersonnelList(
+                personnelService.retrieveRegisteredPersonnelList(
                         "fullName","ASC"),
                 contains(personnel2, personnel3, personnel, personnel4));
     }
 
     @Test
     public void testSortByNationalIDAsc() throws Exception {
-        mockPersonnelService.registerPersonnel(personnel);
-        mockPersonnelService.registerPersonnel(personnel2);
-        mockPersonnelService.registerPersonnel(personnel3);
-        mockPersonnelService.registerPersonnel(personnel4);
+        personnelService.registerPersonnel(personnel);
+        personnelService.registerPersonnel(personnel2);
+        personnelService.registerPersonnel(personnel3);
+        personnelService.registerPersonnel(personnel4);
         assertThat(
-                mockPersonnelService.retrieveRegisteredPersonnelList(
+                personnelService.retrieveRegisteredPersonnelList(
                         "nationalID","ASC"),
                 contains(personnel3, personnel2, personnel4, personnel));
     }
 
     @Test
     public void testSortByBirthDateAsc() throws Exception {
-        mockPersonnelService.registerPersonnel(personnel);
-        mockPersonnelService.registerPersonnel(personnel2);
-        mockPersonnelService.registerPersonnel(personnel3);
-        mockPersonnelService.registerPersonnel(personnel4);
+        personnelService.registerPersonnel(personnel);
+        personnelService.registerPersonnel(personnel2);
+        personnelService.registerPersonnel(personnel3);
+        personnelService.registerPersonnel(personnel4);
         assertThat(
-                mockPersonnelService.retrieveRegisteredPersonnelList(
+                personnelService.retrieveRegisteredPersonnelList(
                         "birthDate","ASC"),
                 contains(personnel2, personnel3, personnel4, personnel));
     }
 
     @Test
     public void testSortByNameDesc() throws Exception {
-        mockPersonnelService.registerPersonnel(personnel);
-        mockPersonnelService.registerPersonnel(personnel2);
-        mockPersonnelService.registerPersonnel(personnel3);
-        mockPersonnelService.registerPersonnel(personnel4);
+        personnelService.registerPersonnel(personnel);
+        personnelService.registerPersonnel(personnel2);
+        personnelService.registerPersonnel(personnel3);
+        personnelService.registerPersonnel(personnel4);
         assertThat(
-                mockPersonnelService.retrieveRegisteredPersonnelList(
+                personnelService.retrieveRegisteredPersonnelList(
                         "fullName","DESC"),
                 contains(personnel4, personnel, personnel3, personnel2));
 
@@ -283,24 +285,24 @@ public class PersonnelServiceTestUsingMockito {
 
     @Test
     public void testSortByNationalIDDesc() throws Exception {
-        mockPersonnelService.registerPersonnel(personnel);
-        mockPersonnelService.registerPersonnel(personnel2);
-        mockPersonnelService.registerPersonnel(personnel3);
-        mockPersonnelService.registerPersonnel(personnel4);
+        personnelService.registerPersonnel(personnel);
+        personnelService.registerPersonnel(personnel2);
+        personnelService.registerPersonnel(personnel3);
+        personnelService.registerPersonnel(personnel4);
         assertThat(
-                mockPersonnelService.retrieveRegisteredPersonnelList(
+                personnelService.retrieveRegisteredPersonnelList(
                         "nationalID","DESC"),
                 contains(personnel, personnel4, personnel2, personnel3));
     }
 
     @Test
     public void testSortByBirthDateDesc() throws Exception {
-        mockPersonnelService.registerPersonnel(personnel);
-        mockPersonnelService.registerPersonnel(personnel2);
-        mockPersonnelService.registerPersonnel(personnel3);
-        mockPersonnelService.registerPersonnel(personnel4);
+        personnelService.registerPersonnel(personnel);
+        personnelService.registerPersonnel(personnel2);
+        personnelService.registerPersonnel(personnel3);
+        personnelService.registerPersonnel(personnel4);
         assertThat(
-                mockPersonnelService.retrieveRegisteredPersonnelList(
+                personnelService.retrieveRegisteredPersonnelList(
                         "birthDate","DESC"),
                 contains(personnel, personnel4, personnel3, personnel2));
     }
@@ -308,45 +310,45 @@ public class PersonnelServiceTestUsingMockito {
     //Funcionalidad 4
     @Test
     public void testSearchByFullName() throws Exception {
-        mockPersonnelService.registerPersonnel(personnel);
-        mockPersonnelService.registerPersonnel(personnel2);
-        mockPersonnelService.registerPersonnel(personnel3);
-        mockPersonnelService.registerPersonnel(personnel4);
+        personnelService.registerPersonnel(personnel);
+        personnelService.registerPersonnel(personnel2);
+        personnelService.registerPersonnel(personnel3);
+        personnelService.registerPersonnel(personnel4);
         assertEquals(
-                mockPersonnelService.searchByFullName("Pepito Juarez").getFullName(),
+                personnelService.searchByFullName("Pepito Juarez").getFullName(),
                 "Pepito Juarez");
     }
 
     @Test
     public void testSearchByFullName2() throws Exception {
-        personnel = mockPersonnelService.registerPersonnel(personnel);
-        personnel2 = mockPersonnelService.registerPersonnel(personnel2);
-        personnel3 = mockPersonnelService.registerPersonnel(personnel3);
-        personnel4 = mockPersonnelService.registerPersonnel(personnel4);
+        personnel = personnelService.registerPersonnel(personnel);
+        personnel2 = personnelService.registerPersonnel(personnel2);
+        personnel3 = personnelService.registerPersonnel(personnel3);
+        personnel4 = personnelService.registerPersonnel(personnel4);
         assertEquals(
-                mockPersonnelService.searchByFullName("Pepito Juarez"),
+                personnelService.searchByFullName("Pepito Juarez"),
                 personnel);
     }
 
     @Test
     public void testSearchByNationalID() throws Exception {
-        mockPersonnelService.registerPersonnel(personnel);
-        mockPersonnelService.registerPersonnel(personnel2);
-        mockPersonnelService.registerPersonnel(personnel3);
-        mockPersonnelService.registerPersonnel(personnel4);
+        personnelService.registerPersonnel(personnel);
+        personnelService.registerPersonnel(personnel2);
+        personnelService.registerPersonnel(personnel3);
+        personnelService.registerPersonnel(personnel4);
         assertEquals(
-                mockPersonnelService.searchByNationalID("134056 CB").getNationalID(),
+                personnelService.searchByNationalID("134056 CB").getNationalID(),
                 "134056 CB");
     }
 
     @Test
     public void testSearchByNationalID2() throws Exception {
-        mockPersonnelService.registerPersonnel(personnel);
-        mockPersonnelService.registerPersonnel(personnel2);
-        mockPersonnelService.registerPersonnel(personnel3);
-        mockPersonnelService.registerPersonnel(personnel4);
+        personnelService.registerPersonnel(personnel);
+        personnelService.registerPersonnel(personnel2);
+        personnelService.registerPersonnel(personnel3);
+        personnelService.registerPersonnel(personnel4);
         assertEquals(
-                mockPersonnelService.searchByNationalID("134056 CB"),
+                personnelService.searchByNationalID("134056 CB"),
                 personnel3);
     }*/
 }

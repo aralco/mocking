@@ -2,6 +2,7 @@ package bo.edu.umss.programming.mocking;
 
 import bo.edu.umss.programming.mocking.domain.Personnel;
 import bo.edu.umss.programming.mocking.exception.NotValidPersonnelException;
+import bo.edu.umss.programming.mocking.mock.MockPersonnelService;
 import org.junit.Before;
 import org.junit.Test;
 import java.util.Calendar;

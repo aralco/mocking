@@ -1,4 +1,4 @@
-package bo.edu.umss.programming.mocking;
+package bo.edu.umss.programming.mocking.mock;
 
 import bo.edu.umss.programming.mocking.domain.Personnel;
 import bo.edu.umss.programming.mocking.exception.NotValidPersonnelException;

@@ -2,15 +2,29 @@ package bo.edu.umss.programming.mocking;
 
 import bo.edu.umss.programming.mocking.domain.Personnel;
 import bo.edu.umss.programming.mocking.exception.NotValidPersonnelException;
+import bo.edu.umss.programming.mocking.service.PersonnelService;
 import org.junit.Before;
 import org.junit.Test;
+
+import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.List;
+import java.util.UUID;
 
 import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.*;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
-public class PersonnelServiceTest {
-    private MockPersonnelService mockPersonnelService;
+public class PersonnelServiceTestUsingMockito {
+    private PersonnelService mockPersonnelService;
+    //Mock
+    private List<Personnel> registeredPersonnels = new ArrayList<>();
+    private Personnel personnelA;
+    private Personnel personnelB;
+    private Personnel personnelC;
+    private Personnel personnelD;
+
     private Personnel personnel;
     private Personnel personnel2;
     private Personnel personnel3;
@@ -20,8 +34,66 @@ public class PersonnelServiceTest {
 
     @Before
     public void setUp() throws Exception {
-        mockPersonnelService = new MockPersonnelService();
         Calendar calendar = Calendar.getInstance();
+
+        //Mock Start
+        mockPersonnelService = mock(PersonnelService.class);
+
+        personnelA = new Personnel();
+        personnelA.setFullName("Pepito Juarez");
+        personnelA.setNationalID("654520 TJ");
+        calendar.set(1999, Calendar.MAY, 6);//YYYY,MM,DD
+        personnelA.setBirthDate(calendar.getTime());
+        personnelA.setPhone(76587222);
+        personnelA.setAddress("B. Las Cuadras");
+        personnelA.setPosition("Cabo");
+        //fields set by register method
+        personnelA.setId(UUID.randomUUID().toString());
+        personnelA.setRegistrationDate(Calendar.getInstance().getTime());
+
+
+        personnelB = new Personnel();
+        personnelB.setFullName("Jon Doe");
+        personnelB.setNationalID("212735 SC");
+        calendar.set(1987, Calendar.APRIL, 7);//YYYY,MM,DD
+        personnelB.setBirthDate(calendar.getTime());
+        personnelB.setPhone(70770777);
+        personnelB.setAddress("Av. Sucre #1999");
+        personnelB.setPosition("Cabo");
+        //fields set by register method
+        personnelB.setId(UUID.randomUUID().toString());
+        personnelB.setRegistrationDate(Calendar.getInstance().getTime());
+
+        personnelC = new Personnel();
+        personnelC.setFullName("Marco Botton");
+        personnelC.setNationalID("134056 CB");
+        calendar.set(1989, Calendar.MAY, 13);//YYYY,MM,DD
+        personnelC.setBirthDate(calendar.getTime());
+        personnelC.setPhone(70770777);
+        personnelC.setAddress("Av. Sucre #1999");
+        personnelC.setPosition("Sargento");
+        //fields set by register method
+        personnelC.setId(UUID.randomUUID().toString());
+        personnelC.setRegistrationDate(Calendar.getInstance().getTime());
+
+        personnelD = new Personnel();
+        personnelD.setFullName("Valerie Liberty");
+        personnelD.setNationalID("231256 LP");
+        calendar.set(1993, Calendar.NOVEMBER, 18);//YYYY,MM,DD
+        personnelD.setBirthDate(calendar.getTime());
+        personnelD.setPhone(74392312);
+        personnelD.setAddress("Av. Pando #121");
+        personnelD.setPosition("Sargento");
+        //fields set by register method
+        personnelD.setId(UUID.randomUUID().toString());
+        personnelD.setRegistrationDate(Calendar.getInstance().getTime());
+
+        registeredPersonnels.add(personnelA);
+        registeredPersonnels.add(personnelB);
+        registeredPersonnels.add(personnelC);
+        registeredPersonnels.add(personnelD);
+
+        //Mock End
 
         personnel = new Personnel();
         personnel.setFullName("Pepito Juarez");
@@ -74,21 +146,26 @@ public class PersonnelServiceTest {
     //Funcionalidad 1
     @Test
     public void testRegisteredPersonnelIsReturned() throws Exception {
+        when(mockPersonnelService.registerPersonnel(personnel)).thenReturn(personnelA);
         assertNotNull(mockPersonnelService.registerPersonnel(personnel));
     }
 
     @Test
     public void testRegisteredPersonnelHasId() throws Exception {
+        when(mockPersonnelService.registerPersonnel(personnel)).thenReturn(personnelA);
         assertNotNull((mockPersonnelService.registerPersonnel(personnel)).getId());
     }
 
     @Test
     public void testRegisteredPersonnelHasRegistrationDate() throws Exception {
+        when(mockPersonnelService.registerPersonnel(personnel)).thenReturn(personnelA);
         assertNotNull((mockPersonnelService.registerPersonnel(personnel)).getRegistrationDate());
     }
 
     @Test
     public void testRegisteredPersonnelHasUniqueId() throws Exception {
+        when(mockPersonnelService.registerPersonnel(personnel)).thenReturn(personnelA);
+        when(mockPersonnelService.registerPersonnel(personnel2)).thenReturn(personnelB);
         assertNotEquals(
                 mockPersonnelService.registerPersonnel(personnel).getId(),
                 mockPersonnelService.registerPersonnel(personnel2).getId());
@@ -101,6 +178,7 @@ public class PersonnelServiceTest {
 
     @Test
     public void testPersonnelToBeRegisteredHasNullValues() throws Exception {
+        when(mockPersonnelService.personnelHasNullValues(personnelWithNullValues)).thenCallRealMethod();
         assertTrue(mockPersonnelService.personnelHasNullValues(personnelWithNullValues));
     }
 
@@ -113,6 +191,7 @@ public class PersonnelServiceTest {
 
     @Test
     public void testPersonnelToBeRegisteredHasInvalidData() throws Exception {
+        when(mockPersonnelService.personnelHasInvalidData(personnelWithInvalidData)).thenCallRealMethod();
         assertTrue(
                 "Personnel has invalid data",
                 mockPersonnelService.personnelHasInvalidData(personnelWithInvalidData));
@@ -120,11 +199,13 @@ public class PersonnelServiceTest {
 
     @Test(expected = NotValidPersonnelException.class)
     public void testExceptionThrownWhenPersonnelToBeRegisteredIsNotValid() throws Exception {
+        when(mockPersonnelService.registerPersonnel(personnelWithNullValues)).thenThrow(NotValidPersonnelException.class);
         mockPersonnelService.registerPersonnel(personnelWithNullValues);
     }
 
     @Test(expected = NotValidPersonnelException.class)
     public void testExceptionThrownWhenPersonnelToBeRegisteredIsNotValid2() throws Exception {
+        when(mockPersonnelService.registerPersonnel(personnelWithInvalidData)).thenThrow(NotValidPersonnelException.class);
         mockPersonnelService.registerPersonnel(personnelWithInvalidData);
     }
 
@@ -136,18 +217,20 @@ public class PersonnelServiceTest {
 
     @Test
     public void testRegisteredPersonnelListIsNotEmpty() throws Exception {
-        mockPersonnelService.registerPersonnel(personnel);
+//        mockPersonnelService.registerPersonnel(personnel);
+        when(mockPersonnelService.retrieveRegisteredPersonnelList()).thenReturn(registeredPersonnels);
         assertFalse(mockPersonnelService.retrieveRegisteredPersonnelList().isEmpty());
     }
 
     @Test
     public void testRegisteredPersonnelIsOnRegisteredPersonnelList() throws Exception {
-        mockPersonnelService.registerPersonnel(personnel);
-        mockPersonnelService.registerPersonnel(personnel2);
+//        mockPersonnelService.registerPersonnel(personnel);
+//        mockPersonnelService.registerPersonnel(personnel2);
+        when(mockPersonnelService.retrieveRegisteredPersonnelList()).thenReturn(registeredPersonnels);
         assertThat(mockPersonnelService.retrieveRegisteredPersonnelList(),
-                hasItems(personnel, personnel2));
+                hasItems(personnelA, personnelB));
     }
-
+/*
     //Funcionalidad 3
     @Test
     public void testSortByFullNameAsc() throws Exception {
@@ -222,7 +305,7 @@ public class PersonnelServiceTest {
                 contains(personnel, personnel4, personnel3, personnel2));
     }
 
-    //Funcionalidad 3
+    //Funcionalidad 4
     @Test
     public void testSearchByFullName() throws Exception {
         mockPersonnelService.registerPersonnel(personnel);
@@ -265,6 +348,6 @@ public class PersonnelServiceTest {
         assertEquals(
                 mockPersonnelService.searchByNationalID("134056 CB"),
                 personnel3);
-    }
+    }*/
 }
 

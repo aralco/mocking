@@ -1,10 +1,20 @@
 package bo.edu.umss.programming.mocking.domain;
 
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.GenericGenerator;
+
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.Id;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
+@Entity
 public class Personnel implements Comparable<Personnel>{
 
+    @Id
+    @GeneratedValue(generator="system-uuid")
+    @GenericGenerator(name="system-uuid", strategy = "uuid")
     private String id;
     private String fullName;
     private String nationalID;
@@ -12,6 +22,7 @@ public class Personnel implements Comparable<Personnel>{
     private Integer phone;
     private String address;
     private String position;
+    @CreationTimestamp
     private Date registrationDate;
 
     public String getId() {

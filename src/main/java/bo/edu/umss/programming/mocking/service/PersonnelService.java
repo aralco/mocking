@@ -2,22 +2,28 @@ package bo.edu.umss.programming.mocking.service;
 
 import bo.edu.umss.programming.mocking.domain.Personnel;
 import bo.edu.umss.programming.mocking.exception.NotValidPersonnelException;
+import bo.edu.umss.programming.mocking.repository.PersonnelRepository;
+import org.springframework.data.domain.Sort;
+import org.springframework.stereotype.Service;
 
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+@Service
 public class PersonnelService {
-    private List<Personnel> registeredPersonnels = new ArrayList<>();
+
+    private final PersonnelRepository personnelRepository;
+
+    public PersonnelService(PersonnelRepository personnelRepository) {
+        this.personnelRepository = personnelRepository;
+    }
 
     public Personnel registerPersonnel(Personnel personnel) throws NotValidPersonnelException {
         if(personnelHasNullValues(personnel) || personnelHasInvalidData(personnel))   {
             throw new NotValidPersonnelException();
         }
-        personnel.setId(UUID.randomUUID().toString());
-        personnel.setRegistrationDate(Calendar.getInstance().getTime());
-        registeredPersonnels.add(personnel);
-        return personnel;
+        return personnelRepository.save(personnel);
     }
 
     public Boolean personnelHasNullValues(Personnel personnel)    {
@@ -57,60 +63,25 @@ public class PersonnelService {
     }
 
     public List<Personnel> retrieveRegisteredPersonnelList() {
-        return registeredPersonnels;
+        return this.personnelRepository.findAll();
     }
 
     public List<Personnel> retrieveRegisteredPersonnelList(String criteria, String order) {
-//        Comparator<Personnel> c = (o1, o2) -> o1.getBirthDate().compareTo(o2.getBirthDate();
-        Comparator<Personnel> comparator = null;
-        switch (criteria)   {
-            case "id":
-                comparator = Comparator.comparing(Personnel::getId);
-                break;
-            case "fullName":
-                comparator = Comparator.comparing(Personnel::getFullName);
-                break;
-            case "birthDate":
-                comparator = Comparator.comparing(Personnel::getBirthDate);
-                break;
-            case "nationalID":
-                comparator = Comparator.comparing(Personnel::getNationalID);
-                break;
-            case "registrationDate":
-                comparator = Comparator.comparing(Personnel::getRegistrationDate);
-                break;
-        }
-        Collections.sort(registeredPersonnels, comparator);
-        if(order.equals("DESC"))
-            Collections.reverse(registeredPersonnels);
-        return registeredPersonnels;
+        Sort.Direction direction = order.equals("DESC")?Sort.Direction.DESC:Sort.Direction.ASC;
+        return this.personnelRepository.findAll(Sort.by(new Sort.Order(direction, criteria)));
     }
 
     public Personnel searchById(String s) {
-        Comparator<Personnel> comparator = Comparator.comparing(Personnel::getId);
-        Personnel target = new Personnel();
-        target.setId(s);
-        registeredPersonnels.sort(comparator);
-        int found = Collections.binarySearch(registeredPersonnels, target, comparator);
-        return registeredPersonnels.get(found);
+        Optional<Personnel> optional = this.personnelRepository.findById(s);
+        return optional.orElse(null);
     }
 
     public Personnel searchByFullName(String s) {
-        Comparator<Personnel> comparator = Comparator.comparing(Personnel::getFullName);
-        Personnel target = new Personnel();
-        target.setFullName(s);
-        registeredPersonnels.sort(comparator);
-        int found = Collections.binarySearch(registeredPersonnels, target, comparator);
-        return registeredPersonnels.get(found);
+        return this.personnelRepository.findPersonnelByFullName(s);
     }
 
     public Personnel searchByNationalID(String s) {
-        Comparator<Personnel> comparator = Comparator.comparing(Personnel::getNationalID);
-        Personnel target = new Personnel();
-        target.setNationalID(s);
-        registeredPersonnels.sort(comparator);
-        int found = Collections.binarySearch(registeredPersonnels, target, comparator);
-        return registeredPersonnels.get(found);
+        return this.personnelRepository.findPersonnelByNationalID(s);
     }
 
 }
